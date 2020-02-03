@@ -1,5 +1,10 @@
 #!/bin/bash
 
+######################### Both Node ##################################
+
+#### Step 1
+
+
 # Install Docker CE
 ## Set up the repository
 ### Install required packages.
@@ -64,8 +69,12 @@ EOF
 sysctl --system
 
 swapoff -a
+exit
+############################ Master ####################################################
 
-kubeadm init
+##### Step 2
+
+kubeadm init --pod-network-cidr=10.244.0.0/16
 
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
@@ -73,3 +82,19 @@ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
 kubeadm join 192.168.0.114:6443 --token hk7rpz.5n1gpacrb4l8x0ho \
     --discovery-token-ca-cert-hash sha256:2b4cbfd8f2ed122d12219541bf5c34c27647611a12ec09f6f68c85325ac01e30
+
+
+####### Step 3
+kubeadm token list
+kubeadm token create --description "Demo token" --ttl 1h
+openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
+#5a2329a9ac4ceb8f0cab74e129191c88ed6ffba794702b403e4fe0476542867c
+
+
+################################## Worker ############################################
+
+############ Step 4
+kubeadm join 10.0.2.15:6443 --token qafv4u.x20jjpvkwbxyrf8u --discovery-token-ca-cert-hash sha256:5a2329a9ac4ceb8f0cab74e129191c88ed6ffba794702b403e4fe0476542867c
+
+
+
