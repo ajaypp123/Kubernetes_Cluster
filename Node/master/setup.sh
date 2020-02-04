@@ -80,11 +80,8 @@ sysctl --system
 swapoff -a
 sed -i '/swap/d' /etc/fstab # remove swap line
 
-# Setup Kubeadm cluster
-kubeadm config images pull
-
 # Init kubeadm
-kubeadm init --pod-network-cidr=10.244.0.0/16
+kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.10.10.11
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config

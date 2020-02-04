@@ -11,9 +11,6 @@ Vagrant.configure("2") do |config|
   }
 
   cluster.each do | hostname, specs |
-    config.vm.network "public_network", bridge: "en0: Wi-Fi (AirPort)"
-	config.vm.synced_folder "./Node", "/vagrant"
-	
     config.vm.define hostname do |node|
       node.vm.hostname = hostname
 	  node.vm.network :private_network, ip: specs[:ip]
@@ -21,13 +18,12 @@ Vagrant.configure("2") do |config|
 	    v.memory = specs[:memory]
 	    v.cpus = specs[:cpus]
 	  end
-	end
 
-	# TODO: Add disk custom size
-	#config.disksize.size = specs[:disk]
-	config.vm.provision :shell, :inline => "sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config; sudo systemctl restart sshd;", run: "always"
-	config.vm.provision "shell", inline: <<-SHELL
-		host=$(hostname)
+	  node.vm.network "public_network", bridge: "en0: Wi-Fi (AirPort)"
+	  node.vm.synced_folder "./Node", "/vagrant"
+	  node.vm.provision :shell, :inline => "sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config; sudo systemctl restart sshd;", run: "always"
+	  node.vm.provision "shell", inline: <<-SHELL
+	    host=$(hostname)
 		if [ $host == "master-1" ]
 		then
 			# Master Node
@@ -36,6 +32,9 @@ Vagrant.configure("2") do |config|
 			# Worker Node
 			bash /vagrant/worker/setup.sh
 		fi
-	SHELL
+	  SHELL
+	end
+	# TODO: Add disk custom size
+	#config.disksize.size = specs[:disk]
   end
 end
