@@ -1,0 +1,26 @@
+# -*- mode: ruby *-*
+# vi: set ft=ruby
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "mrvantage/centos7-minikube"
+  config.vm.box_version = "1902.01"
+  cluster = {
+    "master-1" => { :ip => "10.10.10.11", :cpus => 2, :memory => 1548, :disk => "30G", :port => "2030" },
+  }
+
+  cluster.each do | hostname, specs |
+    config.vm.define hostname do |node|
+      #node.vm.hostname = hostname
+	  node.vm.network :private_network, ip: specs[:ip]
+	  node.vm.provider "virtualbox" do |v|
+	    v.memory = specs[:memory]
+	    v.cpus = specs[:cpus]
+	  end
+
+	  node.vm.network "public_network", bridge: "en0: Wi-Fi (AirPort)"
+	  node.vm.provision :shell, :inline => "sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config; sudo systemctl restart sshd;", run: "always"
+	end
+	# TODO: Add disk custom size
+	#config.disksize.size = specs[:disk]
+  end
+end
